@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>StudioShoot Track - MUSKAN FASHION</title>
+    <link rel="manifest" href="manifest.json">
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#e11d48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="StudioShoot">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Hide scrollbar for cleaner mobile look while keeping functionality */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-full flex flex-col font-sans antialiased overscroll-none">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-600 flex items-center justify-center text-white shadow-md shadow-rose-200">
+                    <i class="fa-solid fa-spa text-base sm:text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-tight uppercase">Muskan Fashion</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-500 hidden sm:block">StudioShoot Tracker</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Sync Indicator -->
+                <div id="sync-indicator" class="hidden items-center text-xs font-medium text-slate-400 mr-2">
+                    <i class="fa-solid fa-arrows-rotate animate-spin mr-1"></i> <span class="hidden sm:inline">Syncing...</span>
+                </div>
+
+                <button onclick="openStudiosModal()" class="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition-all">
+                    <i class="fa-solid fa-gear sm:mr-2 text-rose-600"></i> <span class="hidden sm:inline">Settings</span>
+                </button>
+                <button onclick="openNewEntryModal()" class="inline-flex items-center justify-center p-2 sm:px-4 sm:py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    <i class="fa-solid fa-plus sm:mr-2"></i> <span class="hidden sm:inline">New Entry</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 overflow-y-auto">
+        
+        <!-- Metrics / Summary Grid (Responsive Grid) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Total Sent</span>
+                    <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                        <i class="fa-solid fa-paper-plane text-xs sm:text-sm"></i>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-3 flex items-baseline justify-between">
+                    <span id="stat-total-sent" class="text-xl sm:text-2xl font-bold text-slate-900">-</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Received</span>
+                    <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i class="fa-solid fa-box-open text-xs sm:text-sm"></i>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-3 flex items-baseline justify-between">
+                    <span id="stat-total-received" class="text-xl sm:text-2xl font-bold text-emerald-600">-</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Pending</span>
+                    <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="fa-solid fa-clock-rotate-left text-xs sm:text-sm"></i>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-3 flex items-baseline justify-between">
+                    <span id="stat-total-pending" class="text-xl sm:text-2xl font-bold text-amber-600">-</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Active</span>
+                    <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <i class="fa-solid fa-tags text-xs sm:text-sm"></i>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-3 flex items-baseline justify-between">
+                    <span id="stat-active-shoots" class="text-xl sm:text-2xl font-bold text-purple-600">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & Search Bar -->
+        <div class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+            <div class="relative w-full md:w-80">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text" id="search-input" oninput="filterEntries()" placeholder="Search invoice, design..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition-all appearance-none">
+            </div>
+            
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                <div class="flex overflow-x-auto no-scrollbar pb-1 sm:pb-0 rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-medium text-slate-600 whitespace-nowrap w-full sm:w-auto">
+                    <button onclick="setStatusFilter('all')" id="filter-btn-all" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg bg-white text-rose-600 shadow-sm transition-all text-center">All</button>
+                    <button onclick="setStatusFilter('pending')" id="filter-btn-pending" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg hover:text-slate-900 transition-all text-center">Pending</button>
+                    <button onclick="setStatusFilter('partial')" id="filter-btn-partial" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg hover:text-slate-900 transition-all text-center">Partial</button>
+                    <button onclick="setStatusFilter('completed')" id="filter-btn-completed" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg hover:text-slate-900 transition-all text-center">Done</button>
+                </div>
+
+                <select id="suit-type-filter" onchange="filterEntries()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rose-500 w-full sm:w-auto appearance-none">
+                    <option value="all">All Outfit Types</option>
+                    <option value="3-Piece Set">3-Piece Set</option>
+                    <option value="2-Piece Set">2-Piece Set</option>
+                    <option value="1-Piece Kurti">1-Piece Kurti</option>
+                    <option value="Lehenga Set">Lehenga Set</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Entries List Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+            <div class="px-4 sm:px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+                <h2 class="text-sm sm:text-base font-bold text-slate-900">Shoot Dispatches</h2>
+                <span id="entries-count-label" class="text-xs font-medium text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-full">...</span>
+            </div>
+            
+            <div id="entries-container" class="divide-y divide-slate-100">
+                <!-- Initial Loading State -->
+                <div class="py-12 px-4 text-center text-slate-400">
+                    <i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i>
+                    <p class="text-sm">Connecting to database...</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- New Entry Modal -->
+    <div id="new-entry-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 hidden transition-opacity">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-5 sm:p-8 shadow-2xl transform transition-transform translate-y-full sm:translate-y-0 max-h-[90vh] overflow-y-auto" id="new-entry-modal-content">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 sticky top-0 bg-white z-10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">New Catalog Shoot</h3>
+                    </div>
+                </div>
+                <button onclick="closeNewEntryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="new-entry-form" onsubmit="handleNewEntrySubmit(event)" class="space-y-4 pt-4">
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Invoice No. (Auto)</label>
+                        <input type="text" id="form-invoice" required readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-mono font-bold text-rose-600 focus:outline-none appearance-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Date Sent *</label>
+                        <input type="date" id="form-date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Catalog Design Name *</label>
+                    <input type="text" id="form-design" required placeholder="e.g., Royal Organza #402" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Studio / Photographer *</label>
+                        <select id="form-studio-select" onchange="onStudioSelected()" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">WhatsApp Mobile</label>
+                        <input type="text" id="form-phone" required readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-mono text-slate-700 focus:outline-none appearance-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Delivery Boy Name</label>
+                        <input type="text" id="form-delivery-name" placeholder="e.g., Raju" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Delivery Boy Mobile</label>
+                        <input type="text" id="form-delivery-phone" placeholder="+91..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Outfit Type *</label>
+                        <select id="form-suit-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                            <option value="3-Piece Set">3-Piece Set</option>
+                            <option value="2-Piece Set">2-Piece Set</option>
+                            <option value="1-Piece Kurti">1-Piece Kurti</option>
+                            <option value="Lehenga Set">Lehenga Set</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Qty Sent *</label>
+                        <input type="number" id="form-qty" min="1" required placeholder="e.g., 15" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Notes (Optional)</label>
+                    <textarea id="form-notes" rows="2" placeholder="e.g., specific sizing..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none"></textarea>
+                </div>
+
+                <div class="pt-4 pb-2 flex items-center justify-end space-x-3 sticky bottom-0 bg-white">
+                    <button type="button" onclick="closeNewEntryModal()" class="px-5 py-3 sm:py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium transition-all w-full sm:w-auto">Cancel</button>
+                    <button type="submit" class="px-5 py-3 sm:py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold shadow-sm hover:shadow transition-all w-full sm:w-auto">Save Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receive Modal -->
+    <div id="receive-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 hidden">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-5 sm:p-8 shadow-2xl transform transition-transform translate-y-full sm:translate-y-0 max-h-[90vh] overflow-y-auto" id="receive-modal-content">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Receive Inventory</h3>
+                    </div>
+                </div>
+                <button onclick="closeReceiveModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="receive-form" onsubmit="handleReceiveSubmit(event)" class="space-y-4 pt-4">
+                <input type="hidden" id="receive-entry-id">
+                
+                <div class="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 space-y-1.5 text-xs">
+                    <div class="flex justify-between"><span class="text-slate-500">Invoice:</span> <span id="info-invoice" class="font-mono font-bold text-rose-600">--</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Design:</span> <span id="info-design" class="font-bold text-slate-800 text-right max-w-[60%] truncate">--</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Pending Now:</span> <span id="info-pending" class="font-bold text-amber-600">--</span></div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Pieces Received Now *</label>
+                    <input type="number" id="receive-qty-input" min="1" required class="w-full px-3.5 py-3 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none">
+                </div>
+
+                <div class="pt-4 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeReceiveModal()" class="px-5 py-3 sm:py-2.5 w-full sm:w-auto rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium transition-all">Cancel</button>
+                    <button type="submit" class="px-5 py-3 sm:py-2.5 w-full sm:w-auto rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-sm transition-all">Save & Log History</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dispatch Success / Notify Modal -->
+    <div id="dispatch-success-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 hidden transition-opacity">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm p-6 shadow-2xl transform transition-transform translate-y-full sm:translate-y-0 text-center" id="dispatch-success-modal-content">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Dispatch Saved!</h3>
+            <p class="text-sm text-slate-500 mb-6">Select who to notify via WhatsApp:</p>
+
+            <div class="space-y-3">
+                <button id="btn-wa-studio" class="w-full px-4 py-3 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-xl text-sm font-semibold shadow-sm flex items-center justify-between transition-all">
+                    <span class="flex items-center"><i class="fa-brands fa-whatsapp text-lg mr-2"></i> Studio Partner</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+                </button>
+                <button id="btn-wa-super" class="w-full px-4 py-3 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-xl text-sm font-semibold shadow-sm flex items-center justify-between transition-all">
+                    <span class="flex items-center"><i class="fa-brands fa-whatsapp text-lg mr-2"></i> Supervisor</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+                </button>
+                <button id="btn-wa-delivery" class="w-full px-4 py-3 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-xl text-sm font-semibold shadow-sm flex items-center justify-between transition-all">
+                    <span class="flex items-center"><i class="fa-brands fa-whatsapp text-lg mr-2"></i> Delivery Boy</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-50"></i>
+                </button>
+            </div>
+            
+            <button onclick="closeSuccessModal()" class="mt-6 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium transition-all w-full">Done</button>
+        </div>
+    </div>
+
+    <!-- Studios Master Modal -->
+    <div id="studios-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 hidden">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-xl p-5 sm:p-8 shadow-2xl transform transition-transform translate-y-full sm:translate-y-0 max-h-[90vh] flex flex-col" id="studios-modal-content">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <i class="fa-solid fa-camera-retro"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Studios Master</h3>
+                    </div>
+                </div>
+                <button onclick="closeStudiosModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 pt-4 overflow-y-auto flex-1 no-scrollbar pb-4">
+                
+                <!-- Global Settings Form -->
+                <div class="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 space-y-3 mb-4">
+                    <h4 class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">Global Settings</h4>
+                    <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block text-[10px] text-slate-500 uppercase tracking-wider mb-1">Supervisor Mobile No.</label>
+                            <input type="text" id="setting-supervisor-phone" placeholder="e.g. +919876543210" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                        </div>
+                        <button onclick="saveSupervisorPhone()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-semibold shadow-sm transition-all flex justify-center items-center">
+                            Save
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Studio Form -->
+                <form id="add-studio-form" onsubmit="handleAddStudio(event)" class="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <h4 class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">Add New Studio</h4>
+                    <div class="grid grid-cols-1 gap-3">
+                        <input type="text" id="studio-master-name" required placeholder="Studio Name (e.g. Aura Studio)" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                        <input type="text" id="studio-master-phone" required placeholder="WhatsApp No (+91...)" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rose-500 appearance-none">
+                    </div>
+                    <button type="submit" class="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-semibold shadow-sm transition-all flex justify-center items-center">
+                        <i class="fa-solid fa-plus mr-2"></i> Save Studio
+                    </button>
+                </form>
+
+                <!-- Studios List -->
+                <div>
+                    <h4 class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-1">Saved Studios (Local)</h4>
+                    <div id="studios-list-container" class="space-y-2 divide-y divide-slate-100 bg-white border border-slate-100 rounded-xl p-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none pb-4 pr-2 sm:pb-0 sm:pr-0"></div>
+
+    <script>
+        // Placeholder for Google Apps Script Web App URL
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysS2bLVv4Qyk5DJMyT2uMGQmz9VCQF_s3zf7F--EeW6mQPWHYxOnDWRtbaCfk-zjju/exec';
+        
+        let studios = [];
+        let entries = [];
+        let currentFilter = 'all';
+
+        // Helper format to guarantee exact DD/MM/YYYY formatting requested by user template
+        function formatDateDDMMYYYY(dateObj) {
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        
+        // Formats YYYY-MM-DD input from HTML Date Picker to DD/MM/YYYY for templates
+        function convertInputDateToDDMMYYYY(inputDateStr) {
+            if (!inputDateStr) return '';
+            const parts = inputDateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return inputDateStr;
+        }
+
+        // Setup API fetch
+        async function apiCall(action, payload = null) {
+            if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+                return mockApi(action, payload); // Use local mock storage if no sheet connected
+            }
+
+            try {
+                toggleSyncIndicator(true);
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: action, data: payload })
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+                const result = await response.json();
+                if(result.error) throw new Error(result.error);
+                return result;
+            } catch (error) {
+                showToast(`Database error: ${error.message || 'Failed to sync'}`, 'error');
+                throw error;
+            } finally {
+                toggleSyncIndicator(false);
+            }
+        }
+
+        function mockApi(action, payload) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    if (action === 'getData') {
+                        // Load Studios primarily from LocalStorage as requested by prompt
+                        const localStudios = JSON.parse(localStorage.getItem('muskanStudios') || '[]');
+                        resolve({
+                            entries: [
+                                { 
+                                    id: '1', invoiceNo: 'INV-2026-001', design: 'Royal Organza #105', 
+                                    vendor: 'Aura Studio', phone: '+919876543210', suitType: '3-Piece Set', 
+                                    sent: 20, received: 14, date: '2026-09-01', notes: '',
+                                    history: [
+                                        { date: '05/09/2026', qty: 4 },
+                                        { date: '06/09/2026', qty: 10 }
+                                    ]
+                                }
+                            ],
+                            studios: localStudios
+                        });
+                    } else {
+                        resolve({ success: true, message: 'Mock success' });
+                    }
+                }, 400);
+            });
+        }
+
+        function toggleSyncIndicator(show) {
+            const ind = document.getElementById('sync-indicator');
+            if (show) {
+                ind.classList.remove('hidden');
+                ind.classList.add('flex');
+            } else {
+                ind.classList.add('hidden');
+                ind.classList.remove('flex');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('form-date').valueAsDate = new Date();
+            
+            const savedSuperPhone = localStorage.getItem('supervisorPhone');
+            if (savedSuperPhone) {
+                const input = document.getElementById('setting-supervisor-phone');
+                if (input) input.value = savedSuperPhone;
+            }
+            
+            // Local studios fallback load
+            studios = JSON.parse(localStorage.getItem('muskanStudios') || '[]');
+
+            try {
+                const data = await apiCall('getData');
+                if (data) {
+                    entries = data.entries || [];
+                    // Safely parse history strings if coming from Apps Script stringified JSON cell
+                    entries.forEach(e => {
+                        if (typeof e.history === 'string') {
+                            try { e.history = JSON.parse(e.history); } 
+                            catch(err) { e.history = []; }
+                        }
+                        if (!e.history) e.history = [];
+                    });
+
+                    // Update studios if API has them, else rely on local
+                    if (data.studios && data.studios.length > 0 && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+                        studios = data.studios;
+                    }
+                    
+                    entries.sort((a, b) => b.id - a.id);
+                    renderEntries();
+                    updateSummaryCards();
+                }
+            } catch (error) {
+                document.getElementById('entries-container').innerHTML = `
+                    <div class="py-12 px-4 text-center text-rose-500">
+                        <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
+                        <p class="text-sm font-semibold">Failed to connect to Database</p>
+                        <p class="text-xs text-slate-500 mt-2">Running locally</p>
+                    </div>`;
+            }
+        });
+
+        function generateNextInvoiceNo() {
+            const year = new Date().getFullYear();
+            const nextNum = entries.length + 1;
+            const paddedNum = String(nextNum).padStart(3, '0');
+            return `INV-${year}-${paddedNum}`;
+        }
+
+        function renderEntries() {
+            const container = document.getElementById('entries-container');
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const suitFilter = document.getElementById('suit-type-filter').value;
+
+            const filtered = entries.filter(item => {
+                const matchesSearch = item.design.toLowerCase().includes(searchQuery) || 
+                                      item.invoiceNo.toLowerCase().includes(searchQuery) ||
+                                      item.vendor.toLowerCase().includes(searchQuery);
+                const matchesSuit = suitFilter === 'all' || item.suitType === suitFilter;
+                
+                let matchesStatus = true;
+                const status = getStatus(item);
+                if (currentFilter === 'pending') matchesStatus = status === 'Pending';
+                if (currentFilter === 'partial') matchesStatus = status === 'Partially Received';
+                if (currentFilter === 'completed') matchesStatus = status === 'Fully Received';
+
+                return matchesSearch && matchesSuit && matchesStatus;
+            });
+
+            document.getElementById('entries-count-label').innerText = `${filtered.length}`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="py-12 px-4 text-center">
+                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3 text-lg sm:text-xl">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-700">No entries found</h3>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => {
+                const status = getStatus(item);
+                const pending = item.sent - item.received;
+                
+                let badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                let iconClass = 'fa-clock text-amber-500';
+                if (status === 'Fully Received') {
+                    badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    iconClass = 'fa-circle-check text-emerald-500';
+                } else if (status === 'Partially Received') {
+                    badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+                    iconClass = 'fa-spinner text-blue-500';
+                }
+
+                // Render Receiving History block if there is history
+                let historyHtml = '';
+                if (item.history && item.history.length > 0) {
+                    const rows = item.history.map(h => `<div class="flex justify-between border-b border-slate-100 last:border-0 py-0.5"><span>${h.date}</span><span class="font-bold text-emerald-600">${h.qty} pcs</span></div>`).join('');
+                    historyHtml = `
+                        <div class="mt-3 text-[10px] sm:text-xs text-slate-600 bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100/50">
+                            <p class="font-bold mb-1.5 text-slate-800 uppercase tracking-wide text-[9px]"><i class="fa-solid fa-clock-rotate-left text-emerald-500 mr-1"></i> Receiving Details</p>
+                            ${rows}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="p-4 sm:p-6 hover:bg-slate-50/85 transition-colors flex flex-col gap-3">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div class="flex gap-2">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-mono font-bold bg-rose-50 text-rose-700 border border-rose-100 shadow-sm">
+                                    ${escapeHTML(item.invoiceNo)}
+                                </span>
+                                <span class="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold border ${badgeClass} inline-flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid ${iconClass}"></i> ${status}
+                                </span>
+                            </div>
+                            <span class="text-[10px] sm:text-xs text-slate-400 font-medium">Sent: ${convertInputDateToDDMMYYYY(item.date)}</span>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-tight mb-1">${escapeHTML(item.design)}</h3>
+                            <p class="text-[11px] sm:text-xs text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600"><i class="fa-solid fa-camera mr-1 text-slate-400"></i>${escapeHTML(item.vendor)}</span>
+                                <span class="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-100 shadow-sm">${item.suitType}</span>
+                            </p>
+                            ${item.notes ? `<p class="text-[11px] sm:text-xs text-slate-600 bg-amber-50/50 p-1.5 rounded-md border border-amber-100 mt-2 line-clamp-2"><i class="fa-solid fa-note-sticky mr-1 text-amber-500"></i>${escapeHTML(item.notes)}</p>` : ''}
+                            ${historyHtml}
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-1">
+                            <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-center flex-1 sm:flex-none sm:min-w-[200px]">
+                                <div>
+                                    <span class="block text-[9px] uppercase font-bold text-slate-400">Sent</span>
+                                    <span class="font-bold text-slate-800 text-sm">${item.sent}</span>
+                                </div>
+                                <div class="border-l border-slate-200">
+                                    <span class="block text-[9px] uppercase font-bold text-slate-400">Rcvd</span>
+                                    <span class="font-bold text-emerald-600 text-sm">${item.received}</span>
+                                </div>
+                                <div class="border-l border-slate-200">
+                                    <span class="block text-[9px] uppercase font-bold text-slate-400">Pend</span>
+                                    <span class="font-bold text-amber-600 text-sm">${pending}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                ${pending > 0 ? `
+                                    <button onclick="openReceiveModal('${item.id}')" class="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs border border-emerald-200 flex items-center justify-center gap-1.5 transition-colors shadow-sm">
+                                        <i class="fa-solid fa-box-archive"></i> <span class="sm:hidden lg:inline">Receive</span>
+                                    </button>
+                                ` : ''}
+                                <button onclick="sendWhatsApp('${item.id}')" class="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> <span class="sm:hidden lg:inline">Notify</span>
+                                </button>
+                                <button onclick="deleteEntry('${item.id}')" class="p-2 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getStatus(item) {
+            const r = Number(item.received);
+            const s = Number(item.sent);
+            if (r === 0) return 'Pending';
+            if (r < s) return 'Partially Received';
+            return 'Fully Received';
+        }
+
+        function updateSummaryCards() {
+            let totalSent = 0;
+            let totalReceived = 0;
+            entries.forEach(item => {
+                totalSent += Number(item.sent);
+                totalReceived += Number(item.received);
+            });
+            document.getElementById('stat-total-sent').innerText = totalSent;
+            document.getElementById('stat-total-received').innerText = totalReceived;
+            document.getElementById('stat-total-pending').innerText = (totalSent - totalReceived);
+            document.getElementById('stat-active-shoots').innerText = entries.filter(item => Number(item.received) < Number(item.sent)).length;
+        }
+
+        function setStatusFilter(status) {
+            currentFilter = status;
+            ['all', 'pending', 'partial', 'completed'].forEach(s => {
+                const btn = document.getElementById(`filter-btn-${s}`);
+                if (s === status) btn.className = 'flex-1 sm:flex-none px-3 py-1.5 rounded-lg bg-white text-rose-600 shadow-sm transition-all text-center';
+                else btn.className = 'flex-1 sm:flex-none px-3 py-1.5 rounded-lg hover:text-slate-900 transition-all text-center';
+            });
+            renderEntries();
+        }
+
+        function filterEntries() { renderEntries(); }
+
+        function toggleModalVisibility(modalId, contentId, show) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(contentId);
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => content.classList.remove('translate-y-full'), 10);
+            } else {
+                content.classList.add('translate-y-full');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function openNewEntryModal() {
+            document.getElementById('form-invoice').value = generateNextInvoiceNo();
+            populateStudioDropdown();
+            toggleModalVisibility('new-entry-modal', 'new-entry-modal-content', true);
+        }
+        
+        function closeNewEntryModal() {
+            toggleModalVisibility('new-entry-modal', 'new-entry-modal-content', false);
+            setTimeout(() => document.getElementById('new-entry-form').reset(), 300);
+        }
+
+        function populateStudioDropdown() {
+            const select = document.getElementById('form-studio-select');
+            if (studios.length === 0) {
+                select.innerHTML = `<option value="">-- Add studios in Master first --</option>`;
+                document.getElementById('form-phone').value = '';
+                return;
+            }
+            select.innerHTML = `<option value="">-- Select Studio --</option>` + 
+                studios.map(s => `<option value="${escapeHTML(s.name)}" data-phone="${escapeHTML(s.phone)}">${escapeHTML(s.name)}</option>`).join('');
+            document.getElementById('form-phone').value = '';
+        }
+
+        function onStudioSelected() {
+            const select = document.getElementById('form-studio-select');
+            const phone = select.options[select.selectedIndex]?.getAttribute('data-phone') || '';
+            document.getElementById('form-phone').value = phone;
+        }
+
+        async function handleNewEntrySubmit(e) {
+            e.preventDefault();
+            const vendor = document.getElementById('form-studio-select').value;
+            if (!vendor) {
+                showToast('Please select a studio.', 'error');
+                return;
+            }
+
+            const deliveryName = document.getElementById('form-delivery-name').value.trim();
+            const deliveryPhone = document.getElementById('form-delivery-phone').value.trim();
+            let finalNotes = document.getElementById('form-notes').value.trim();
+            
+            if (deliveryName || deliveryPhone) {
+                finalNotes += ` | Delivery: ${deliveryName} ${deliveryPhone}`;
+            }
+
+            const newEntry = {
+                id: Date.now().toString(),
+                invoiceNo: document.getElementById('form-invoice').value.trim(),
+                design: document.getElementById('form-design').value.trim(),
+                vendor: vendor,
+                phone: document.getElementById('form-phone').value.trim(),
+                suitType: document.getElementById('form-suit-type').value,
+                sent: parseInt(document.getElementById('form-qty').value, 10),
+                received: 0,
+                date: document.getElementById('form-date').value,
+                notes: finalNotes,
+                history: [], // Initialize empty history log array
+                createdAt: new Date().toISOString()
+            };
+
+            entries.unshift(newEntry);
+            renderEntries();
+            updateSummaryCards();
+            closeNewEntryModal();
+            showToast(`Entry added. Preparing Dispatch...`, 'info');
+
+            // Convert to string for Apps Script Database if needed
+            const dbPayload = { ...newEntry, history: JSON.stringify(newEntry.history) };
+
+            try {
+                await apiCall('addEntry', dbPayload);
+                showToast(`Saved to Database!`, 'success');
+                setTimeout(() => showSuccessModal(newEntry, deliveryName, deliveryPhone), 500);
+            } catch (error) {
+                entries = entries.filter(e => e.id !== newEntry.id);
+                renderEntries();
+                updateSummaryCards();
+            }
+        }
+
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        function copyToClipboardFallback(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function copyMessageToClipboard(message) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(message).catch(() => copyToClipboardFallback(message));
+                } else {
+                    copyToClipboardFallback(message);
+                }
+            } catch (err) {
+                copyToClipboardFallback(message);
+            }
+        }
+
+        function showSuccessModal(item, deliveryName, deliveryPhone) {
+            const superPhone = localStorage.getItem('supervisorPhone') || '';
+            
+            const btnStudio = document.getElementById('btn-wa-studio');
+            btnStudio.onclick = () => sendCustomWhatsApp(item.phone, item.vendor, item, deliveryName, false);
+            
+            const btnSuper = document.getElementById('btn-wa-super');
+            if (superPhone) {
+                btnSuper.style.display = 'flex';
+                btnSuper.onclick = () => sendCustomWhatsApp(superPhone, 'Supervisor', item, deliveryName, false);
+            } else {
+                btnSuper.style.display = 'none';
+            }
+
+            const btnDeliv = document.getElementById('btn-wa-delivery');
+            if (deliveryPhone) {
+                btnDeliv.style.display = 'flex';
+                btnDeliv.onclick = () => sendCustomWhatsApp(deliveryPhone, deliveryName, item, deliveryName, true);
+            } else {
+                btnDeliv.style.display = 'none';
+            }
+
+            toggleModalVisibility('dispatch-success-modal', 'dispatch-success-modal-content', true);
+        }
+
+        function closeSuccessModal() {
+            toggleModalVisibility('dispatch-success-modal', 'dispatch-success-modal-content', false);
+        }
+
+        // Build exact string requested for template delivery
+        function sendCustomWhatsApp(phone, recipientName, item, deliveryName, isDeliveryBoy = false) {
+            const formattedDate = convertInputDateToDDMMYYYY(item.date);
+            
+            let message = `*Dispatch from MUSKAN FASHION* 📸\n\nHi *${recipientName}*,\n`;
+            
+            if (isDeliveryBoy) {
+                message += `Please deliver the following catalog shoot items to *${item.vendor}* (${item.phone}):\n\n`;
+            } else {
+                message += `We have dispatched items for catalog shoot. Please verify:\n\n`;
+            }
+
+            message += `📋 *Invoice:* ${item.invoiceNo}\n` +
+                       `🕒 *date:* ${formattedDate}\n` +
+                       `✨ *Design:* ${item.design}\n` +
+                       `👗 *Type:* ${item.suitType}\n` +
+                       `📦 *Qty Sent:* ${item.sent} pcs\n\n`;
+                       
+            if (deliveryName && !isDeliveryBoy) {
+                message += `🚚 *Sent via:* ${deliveryName}\n`;
+            }
+            
+            if (item.notes) {
+                const cleanNotes = item.notes.split(' | Delivery:')[0];
+                if(cleanNotes.trim()) message += `📝 *Notes:* ${cleanNotes.trim()}\n`;
+            }
+            
+            message += `Thank you!`;
+
+            // Enforce clipboard bypass fix for Emojis
+            copyMessageToClipboard(message);
+            showToast('Message Copied! Paste inside WhatsApp to keep emojis safe.', 'info');
+
+            const cleanPhone = phone.replace(/[^0-9+]/g, '');
+            const baseUrl = isMobileDevice() ? 'https://api.whatsapp.com/send' : 'https://web.whatsapp.com/send';
+            setTimeout(() => {
+                window.open(`${baseUrl}?phone=${cleanPhone}&text=${encodeURIComponent(message)}`, '_blank');
+            }, 500);
+        }
+
+        function sendWhatsApp(id, forcedType = null) {
+            const item = entries.find(e => e.id === id);
+            if (!item) return;
+
+            const pending = item.sent - item.received;
+            const formattedDate = convertInputDateToDDMMYYYY(item.date);
+            let message = '';
+
+            if (forcedType === 'sent' || (!forcedType && item.received === 0)) {
+                // Sent Template
+                message = `*Dispatch from MUSKAN FASHION* 📸\n\nHi *${item.vendor}*,\n` +
+                          `We have dispatched items for catalog shoot. Please verify:\n\n` +
+                          `📋 *Invoice:* ${item.invoiceNo}\n` +
+                          `🕒 *date:* ${formattedDate}\n` +
+                          `✨ *Design:* ${item.design}\n` +
+                          `👗 *Type:* ${item.suitType}\n` +
+                          `📦 *Qty Sent:* ${item.sent} pcs\n\n`;
+                          
+                const cleanNotes = item.notes ? item.notes.split(' | Delivery:')[0] : '';
+                if (cleanNotes.trim()) message += `📝 *Notes:* ${cleanNotes.trim()}\n\n`;
+                
+                message += `Thank you!`;
+            } else {
+                // Partial/Full Update Template
+                message = `*Update from MUSKAN FASHION* 📦\n\nHi *${item.vendor}*,\n` +
+                          `Update for Invoice *${item.invoiceNo}* (${item.design}):\n\n` +
+                          `✔️ *Sent:* ${item.sent} pcs\n` +
+                          `✅ *Received Back:* ${item.received} pcs\n` +
+                          `⏳ *Pending Remaining:* ${pending} pcs\n\n` +
+                          `Thank you!`;
+                          
+                // Append exact History Log
+                if (item.history && item.history.length > 0) {
+                    message += `\nreceiving details\n`;
+                    item.history.forEach(h => {
+                        message += `${h.date} - ${h.qty} pcs\n`;
+                    });
+                }
+            }
+
+            copyMessageToClipboard(message);
+            showToast('Message Copied! Paste inside WhatsApp to keep emojis safe.', 'info');
+
+            const cleanPhone = item.phone.replace(/[^0-9+]/g, '');
+            const baseUrl = isMobileDevice() ? 'https://api.whatsapp.com/send' : 'https://web.whatsapp.com/send';
+            
+            setTimeout(() => {
+                window.open(`${baseUrl}?phone=${cleanPhone}&text=${encodeURIComponent(message)}`, '_blank');
+            }, 500);
+        }
+
+        function openReceiveModal(id) {
+            const item = entries.find(e => e.id === id);
+            if (!item) return;
+
+            document.getElementById('receive-entry-id').value = item.id;
+            document.getElementById('info-invoice').innerText = item.invoiceNo;
+            document.getElementById('info-design').innerText = item.design;
+            
+            const pending = item.sent - item.received;
+            document.getElementById('info-pending').innerText = pending + ' pcs';
+            
+            const qtyInput = document.getElementById('receive-qty-input');
+            qtyInput.value = pending; 
+            qtyInput.max = pending;
+
+            toggleModalVisibility('receive-modal', 'receive-modal-content', true);
+        }
+        
+        function closeReceiveModal() {
+            toggleModalVisibility('receive-modal', 'receive-modal-content', false);
+        }
+
+        async function handleReceiveSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('receive-entry-id').value;
+            const addQty = parseInt(document.getElementById('receive-qty-input').value, 10);
+
+            const item = entries.find(e => e.id === id);
+            if (!item) return;
+
+            const oldReceived = item.received;
+            const maxAllowed = item.sent - item.received;
+            if (addQty > maxAllowed) {
+                showToast(`Max allowed is ${maxAllowed}.`, 'error');
+                return;
+            }
+
+            // Update Total and Push specific log to History 
+            item.received = oldReceived + addQty;
+            const todayFormatted = formatDateDDMMYYYY(new Date());
+            
+            if (!item.history) item.history = [];
+            item.history.push({ date: todayFormatted, qty: addQty });
+
+            renderEntries();
+            updateSummaryCards();
+            closeReceiveModal();
+            showToast(`History updated. Syncing...`, 'info');
+
+            // Make sure the entire payload (with history) stringifies well for DB
+            const dbPayload = { 
+                id: item.id, 
+                received: item.received, 
+                history: JSON.stringify(item.history) // Assuming DB needs it as a string
+            };
+
+            try {
+                await apiCall('updateEntry', dbPayload);
+                showToast(`Database updated!`, 'success');
+                setTimeout(() => {
+                    if (confirm('Send Receiving Status Update via WhatsApp?')) {
+                        sendWhatsApp(item.id, 'received');
+                    }
+                }, 500);
+            } catch(error) {
+                // Rollback on fail
+                item.received = oldReceived;
+                item.history.pop();
+                renderEntries();
+                updateSummaryCards();
+            }
+        }
+
+        async function deleteEntry(id) {
+            if (!confirm('Delete this entry permanently?')) return;
+            const backup = [...entries];
+            
+            entries = entries.filter(e => e.id !== id);
+            renderEntries();
+            updateSummaryCards();
+
+            try {
+                await apiCall('deleteEntry', { id });
+                showToast('Entry deleted from database.', 'success');
+            } catch (error) {
+                entries = backup;
+                renderEntries();
+                updateSummaryCards();
+            }
+        }
+
+        function saveSupervisorPhone() {
+            const phone = document.getElementById('setting-supervisor-phone').value.trim();
+            localStorage.setItem('supervisorPhone', phone);
+            showToast('Supervisor mobile saved.', 'success');
+        }
+
+        function openStudiosModal() {
+            renderStudiosList();
+            toggleModalVisibility('studios-modal', 'studios-modal-content', true);
+        }
+        function closeStudiosModal() {
+            toggleModalVisibility('studios-modal', 'studios-modal-content', false);
+        }
+
+        function renderStudiosList() {
+            const container = document.getElementById('studios-list-container');
+            if (studios.length === 0) {
+                container.innerHTML = `<p class="text-[11px] sm:text-xs text-slate-400 py-3 text-center">No studios added.</p>`;
+                return;
+            }
+            container.innerHTML = studios.map(s => `
+                <div class="py-2.5 px-2 flex items-center justify-between text-xs border-b border-slate-50 last:border-0">
+                    <div class="truncate pr-2">
+                        <p class="font-bold text-slate-900 truncate">${escapeHTML(s.name)}</p>
+                        <p class="font-mono text-slate-500">${escapeHTML(s.phone)}</p>
+                    </div>
+                    <button onclick="deleteStudio('${s.id}')" class="text-slate-400 hover:text-rose-600 p-2 bg-slate-50 rounded-lg hover:bg-rose-50 transition-colors flex-shrink-0">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function handleAddStudio(e) {
+            e.preventDefault();
+            const name = document.getElementById('studio-master-name').value.trim();
+            const phone = document.getElementById('studio-master-phone').value.trim();
+            if (!name || !phone) return;
+
+            const newStudio = { id: 's_' + Date.now(), name, phone };
+            studios.push(newStudio);
+            localStorage.setItem('muskanStudios', JSON.stringify(studios));
+            
+            renderStudiosList();
+            document.getElementById('add-studio-form').reset();
+            showToast('Studio saved locally!', 'success');
+            
+            // Background sync API if configured
+            apiCall('addStudio', newStudio).catch(()=>console.log('Skipped DB studio sync'));
+        }
+
+        async function deleteStudio(id) {
+            if (!confirm('Delete studio from master?')) return;
+            studios = studios.filter(s => s.id !== id);
+            localStorage.setItem('muskanStudios', JSON.stringify(studios));
+            
+            renderStudiosList();
+            showToast('Studio deleted locally.', 'success');
+            
+            apiCall('deleteStudio', { id }).catch(()=>console.log('Skipped DB studio delete'));
+        }
+
+        function escapeHTML(str) {
+            return str ? str.toString().replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            ) : '';
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-slate-900 text-white';
+            let icon = 'fa-circle-check text-emerald-400';
+            if (type === 'error') {
+                bgClass = 'bg-rose-600 text-white';
+                icon = 'fa-circle-exclamation text-white';
+            } else if (type === 'info') {
+                bgClass = 'bg-slate-800 text-white';
+                icon = 'fa-circle-info text-blue-400';
+            }
+
+            toast.className = `w-max max-w-[90vw] pointer-events-auto flex items-center space-x-3 px-4 py-4 rounded-2xl shadow-2xl ${bgClass} text-xs sm:text-sm font-medium transform transition-all duration-300 translate-y-4 opacity-0 z-[100] relative border border-slate-700`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base sm:text-lg"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            });
+
+            const duration = type === 'info' ? 5000 : 3000;
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+    </script>
+</body>
+</html>
