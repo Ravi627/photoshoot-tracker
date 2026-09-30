@@ -36,22 +36,55 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
+    <style>
+        /* Camera Wireframe Drawing Animation */
+        .draw-camera * {
+            stroke-dasharray: 250;
+            stroke-dashoffset: 250;
+            animation: sketch 1.5s ease-out forwards;
+        }
+
+        /* Slight delay for the inner lens and flash details to draw second */
+        .draw-camera .delay-draw {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes sketch {
+            to { stroke-dashoffset: 0; }
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 h-full flex flex-col font-sans antialiased overscroll-none">
     <!-- Custom Camera Splash Screen -->
     <div id="splash-screen" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center">
-        <!-- Wireframe Camera SVG -->
-        <div class="relative w-20 h-20 mb-8">
-            <svg class="w-full h-full text-slate-100/80 stroke-current animate-pulse" viewBox="0 0 24 24" fill="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
-                <path d="M20 9v.01"></path>
+        
+        <!-- Live-Drawing DSLR Wireframe -->
+        <div class="relative w-24 h-24 mb-8">
+            <svg class="w-full h-full text-slate-100 stroke-current draw-camera" viewBox="0 0 100 100" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Camera Body -->
+                <rect x="15" y="38" width="70" height="45" rx="6" />
+                <!-- Shutter Button -->
+                <path d="M 22 38 L 22 31 L 32 31 L 32 38" />
+                <!-- Mode Dial -->
+                <path d="M 70 38 L 70 33 L 78 33 L 78 38" />
+                <!-- Pop-up Flash Housing -->
+                <path d="M 38 38 L 42 20 L 58 20 L 62 38" />
+                
+                <!-- Inner details (draw slightly later) -->
+                <g class="delay-draw">
+                    <!-- Flash Bulb -->
+                    <rect x="45" y="25" width="10" height="5" rx="1" />
+                    <!-- Lens Outer Barrel -->
+                    <circle cx="50" cy="60" r="18" />
+                    <!-- Lens Inner Glass -->
+                    <circle cx="50" cy="60" r="10" />
+                </g>
             </svg>
         </div>
         
         <!-- Cycling Typography -->
         <div class="h-6 overflow-hidden relative w-64 text-center">
-            <p id="splash-text" class="text-xs font-mono tracking-[0.2em] text-slate-300 uppercase absolute inset-0 transition-opacity duration-300">Setting lights...</p>
+            <p id="splash-text" class="text-xs font-mono tracking-[0.2em] text-slate-300 uppercase absolute inset-0 transition-opacity duration-300"></p>
         </div>
     </div>
 
@@ -495,15 +528,27 @@
             }
             
             // --- SPLASH SCREEN LOGIC ---
-            const phrases = ["Setting lights...", "Packing dresses...", "Final touch up...", "Editing the images..."];
+            const phraseSets = [
+                ["Unfolding the organza...", "Draping the dupattas...", "Focusing the lens...", "Syncing the catalog..."],
+                ["Steaming the fabrics...", "Detailing the handwork...", "Positioning the softboxes...", "Updating the dispatch log..."],
+                ["Prepping the 3-piece sets...", "Pinning the silhouettes...", "Metering the light...", "Connecting the catalog..."],
+                ["Setting up the lehengas...", "Smoothing the silk...", "Adjusting the aperture...", "Tallying the pending pieces..."],
+                ["Styling the catalog...", "Ironing the pleats...", "Charging the flash...", "Counting the inventory..."]
+            ];
+            
+            // Pick a random set of 4 phrases every time the app opens
+            const activePhrases = phraseSets[Math.floor(Math.random() * phraseSets.length)];
             let phraseIndex = 0;
             const splashText = document.getElementById('splash-text');
+            
+            // Set the first phrase immediately
+            splashText.innerText = activePhrases[0];
             
             const splashInterval = setInterval(() => {
                 splashText.style.opacity = 0;
                 setTimeout(() => {
-                    phraseIndex = (phraseIndex + 1) % phrases.length;
-                    splashText.innerText = phrases[phraseIndex];
+                    phraseIndex = (phraseIndex + 1) % activePhrases.length;
+                    splashText.innerText = activePhrases[phraseIndex];
                     splashText.style.opacity = 1;
                 }, 300);
             }, 800);
