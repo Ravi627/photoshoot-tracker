@@ -492,31 +492,42 @@
         }
 
         // Setup API fetch
+        // Setup API fetch with a strict timeout
         async function apiCall(action, payload = null) {
             if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
-                return mockApi(action, payload); // Use local mock storage if no sheet connected
+                return mockApi(action, payload); 
             }
+
+            // Create a strict 8-second kill switch for bad network connections
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); 
 
             try {
                 toggleSyncIndicator(true);
                 
-                // ADD THIS: A random timestamp to force a brand-new connection every time
+                // A random timestamp to force a brand-new connection every time
                 const cacheBusterUrl = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
                 
                 const response = await fetch(cacheBusterUrl, {
                     method: 'POST',
-                    cache: 'no-store', // ADD THIS: Forbids the browser from caching the 302 redirect
+                    cache: 'no-store', // Forbids the browser from caching the 302 redirect
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: action, data: payload }),
-                    signal: controller.signal
+                    signal: controller.signal // Attaches the kill switch
                 });
+
+                clearTimeout(timeoutId); // Network succeeded, cancel the kill switch
 
                 if (!response.ok) throw new Error('Network response was not ok');
                 const result = await response.json();
                 if(result.error) throw new Error(result.error);
                 return result;
+                
             } catch (error) {
-                showToast(`Database error: ${error.message || 'Failed to sync'}`, 'error');
+                clearTimeout(timeoutId);
+                // If it was killed by our timeout, show a specific error
+                const errorMsg = error.name === 'AbortError' ? 'Connection timed out' : error.message || 'Failed to sync';
+                showToast(`Database error: ${errorMsg}`, 'error');
                 throw error;
             } finally {
                 toggleSyncIndicator(false);
@@ -632,12 +643,19 @@
             studios = JSON.parse(localStorage.getItem('muskanStudios') || '[]');
             
             // Wait for BOTH the database to load AND the animation to finish (at least 3.2 seconds)
-            const minimumSplashTime = new Promise(resolve => setTimeout(resolve, 3200));
-            const dataFetch = apiCall('getData');
+        // Wait for BOTH the database to load AND the animation to finish (at least 3.2 seconds)
+        const minimumSplashTime = new Promise(resolve => setTimeout(resolve, 3200));
+            
+            // Catch any network errors immediately so they don't cancel our animation timer
+            const dataFetch = apiCall('getData').catch(error => {
+                return { error: true }; 
+            });
 
             Promise.all([dataFetch, minimumSplashTime]).then(results => {
-                const data = results[0]; // The database payload
-                if (data) {
+                const data = results[0]; // The database payload (or error flag)
+                
+                if (data && !data.error) {
+                    // Success! Map the live data
                     entries = data.entries || [];
                     
                     entries.forEach(e => {
@@ -658,17 +676,17 @@
                     
                     renderEntries();
                     updateSummaryCards();
-                    
-                    // BOOM! Trigger the flash
-                    triggerFlashAndReveal();
+                } else {
+                    // Failed to load! Show offline state
+                    document.getElementById('entries-container').innerHTML = `
+                        <div class="py-12 px-4 text-center text-rose-500">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
+                            <p class="text-sm font-semibold">Offline Mode</p>
+                            <p class="text-xs text-slate-500 mt-2">Check internet connection</p>
+                        </div>`;
                 }
-            }).catch(error => {
-                document.getElementById('entries-container').innerHTML = `
-                    <div class="py-12 px-4 text-center text-rose-500">
-                        <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
-                        <p class="text-sm font-semibold">Offline Mode</p>
-                        <p class="text-xs text-slate-500 mt-2">Check internet connection</p>
-                    </div>`;
+                
+                // BOOM! Trigger the flash AFTER the 3.2 seconds, regardless of whether it succeeded or failed
                 triggerFlashAndReveal();
             });
         });
