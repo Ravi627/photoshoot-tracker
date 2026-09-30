@@ -659,13 +659,12 @@
             
             studios = JSON.parse(localStorage.getItem('muskanStudios') || '[]');
             
-            // Wait for BOTH the database to load AND the animation to finish (at least 3.2 seconds)
-        // Wait for BOTH the database to load AND the animation to finish (at least 3.2 seconds)
-        const minimumSplashTime = new Promise(resolve => setTimeout(resolve, 3200));
+       // Wait for BOTH the database to load AND the animation to finish (at least 3.2 seconds)
+       const minimumSplashTime = new Promise(resolve => setTimeout(resolve, 3200));
             
             // Catch any network errors immediately so they don't cancel our animation timer
-            const dataFetch = apiCall('getData').catch(error => {
-                return { error: true }; 
+            const dataFetch = apiCall('getData').catch(err => {
+                return { error: true, details: err.message }; 
             });
 
             Promise.all([dataFetch, minimumSplashTime]).then(results => {
@@ -694,9 +693,9 @@
                     renderEntries();
                     updateSummaryCards();
                 } else {
-                    // Failed to load! Show offline state
-                    // ADD THIS LINE TO STOP SWALLOWING THE ERROR
-                console.error("CRITICAL APP ERROR:", error);
+                    // Failed to load! Log it safely without crashing
+                    console.error("CRITICAL APP ERROR:", data.details || "Unknown database failure");
+                    
                     document.getElementById('entries-container').innerHTML = `
                         <div class="py-12 px-4 text-center text-rose-500">
                             <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
@@ -705,10 +704,9 @@
                         </div>`;
                 }
                 
-                // BOOM! Trigger the flash AFTER the 3.2 seconds, regardless of whether it succeeded or failed
+                // BOOM! Trigger the flash AFTER the 3.2 seconds
                 triggerFlashAndReveal();
             });
-        });
 
         function generateNextInvoiceNo() {
             const year = new Date().getFullYear();
