@@ -35,30 +35,36 @@
         /* Hide scrollbar for cleaner mobile look while keeping functionality */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
-    <style>
-        /* Hide scrollbar for cleaner mobile look while keeping functionality */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Camera Wireframe Drawing Animation */
+        /* Camera Wireframe Drawing Animation - Sped up to remove lag */
         .draw-camera * {
             stroke-dasharray: 100;
             stroke-dashoffset: 100;
-            animation: sketch 2.5s ease-in-out forwards;
+            animation: sketch 0.6s ease-out forwards;
         }
 
-        /* Sequential drawing delays */
-        .draw-camera .delay-1 { animation-delay: 0.6s; }
-        .draw-camera .delay-2 { animation-delay: 1.2s; }
+        /* Sequential drawing delays (Body -> Lens -> Flash -> Button) */
+        .part-body * { animation-delay: 0.1s; }
+        .part-lens * { animation-delay: 0.5s; }
+        .part-flash * { animation-delay: 0.9s; }
+        .part-button * { animation-delay: 1.3s; }
 
         @keyframes sketch {
             to { stroke-dashoffset: 0; }
         }
 
+        /* Shutter Press Animation */
+        .press-shutter {
+            animation: buttonDown 0.15s ease-in forwards;
+        }
+
+        @keyframes buttonDown {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(3px); }
+        }
+
         /* Expanding Camera Flash */
         .flash-expand {
-            /* Originates from the top center of the camera (where the flash bulb is) */
             animation: flashExplode 1.2s ease-out forwards; 
         }
 
@@ -73,34 +79,44 @@
     <!-- Custom Camera Splash Screen -->
     <div id="splash-screen" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center">
         
-        <!-- Live-Drawing DSLR Wireframe -->
-        <div class="relative w-24 h-24 mb-8">
+        <!-- Bigger, Live-Drawing DSLR Wireframe -->
+        <div class="relative w-40 h-40 sm:w-48 sm:h-48 mb-8">
             <svg class="w-full h-full text-slate-100 stroke-current draw-camera" viewBox="0 0 100 100" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <!-- Camera Body & Main Dials -->
-                <rect pathLength="100" x="15" y="38" width="70" height="45" rx="6" />
-                <path pathLength="100" d="M 22 38 L 22 31 L 32 31 L 32 38" />
-                <path pathLength="100" d="M 70 38 L 70 33 L 78 33 L 78 38" />
                 
-                <!-- Pop-up Flash Housing -->
-                <path class="delay-1" pathLength="100" d="M 38 38 L 42 20 L 58 20 L 62 38" />
+                <!-- 1. Camera Body & Mode Dial -->
+                <g class="part-body">
+                    <rect pathLength="100" x="15" y="38" width="70" height="45" rx="6" />
+                    <path pathLength="100" d="M 70 38 L 70 33 L 78 33 L 78 38" />
+                </g>
                 
-                <!-- Inner details (Lens and Flash Bulb draw last) -->
-                <g class="delay-2">
-                    <rect pathLength="100" x="45" y="25" width="10" height="5" rx="1" />
+                <!-- 2. Lens -->
+                <g class="part-lens">
                     <circle pathLength="100" cx="50" cy="60" r="18" />
                     <circle pathLength="100" cx="50" cy="60" r="10" />
                 </g>
+                
+                <!-- 3. Pop-up Flash Housing & Bulb -->
+                <g class="part-flash">
+                    <path pathLength="100" d="M 38 38 L 42 20 L 58 20 L 62 38" />
+                    <rect pathLength="100" x="45" y="25" width="10" height="5" rx="1" />
+                </g>
+
+                <!-- 4. Shutter Button -->
+                <g class="part-button" id="shutter-btn">
+                    <path pathLength="100" d="M 22 38 L 22 31 L 32 31 L 32 38" />
+                </g>
+
             </svg>
         </div>
         
         <!-- Cycling Typography -->
-        <div class="h-6 overflow-hidden relative w-64 text-center">
-            <p id="splash-text" class="text-xs font-mono tracking-[0.2em] text-slate-300 uppercase absolute inset-0 transition-opacity duration-300"></p>
+        <div class="w-full px-6 text-center h-8 relative flex items-center justify-center">
+            <p id="splash-text" class="text-xs sm:text-sm font-mono tracking-widest text-slate-300 uppercase transition-opacity duration-300"></p>
         </div>
     </div>
 
     <!-- The Flash Transition -->
-    <div id="flash-overlay" class="fixed inset-0 z-[105] bg-white pointer-events-none opacity-0"></div>
+    <div id="flash-overlay" class="fixed inset-0 z-[105] bg-white pointer-events-none hidden"></div>
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -566,13 +582,32 @@
                 clearInterval(splashInterval);
                 const flash = document.getElementById('flash-overlay');
                 const splash = document.getElementById('splash-screen');
+                const shutterBtn = document.getElementById('shutter-btn');
                 
-                // Add the expanding CSS animation to the flash overlay
-                flash.classList.add('flash-expand');
+                // 1. Physically press the shutter button down via CSS
+                shutterBtn.classList.add('press-shutter');
                 
-                // Hide the dark splash screen halfway through the white flash explosion
+                // 2. Play high-quality camera shutter sound (using Google's open sound library)
+                const shutterSound = new Audio('https://actions.google.com/sounds/v1/foley/camera_shutter_click.ogg');
+                shutterSound.volume = 0.6; // Not too loud
+                
+                // 3. Handle browser autoplay blocks
+                shutterSound.play().catch(e => console.log("Audio temporarily blocked by browser until user interacts."));
+                
+                // 4. Wait a tiny 150ms for the button to physically hit the bottom, then FLASH
                 setTimeout(() => {
-                    splash.style.display = 'none';
+                    flash.classList.remove('hidden');
+                    flash.classList.add('flash-expand');
+                    
+                    // Hide the dark splash screen halfway through the white flash explosion
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 150);
+                    
+                    // Clean up the white overlay
+                    setTimeout(() => {
+                        flash.style.display = 'none';
+                    }, 1200);
                 }, 150);
             }
             // ---------------------------
