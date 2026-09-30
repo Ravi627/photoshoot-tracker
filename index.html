@@ -63,14 +63,14 @@
             100% { transform: translateY(3px); }
         }
 
-        /* Expanding Camera Flash */
+        /* Expanding Camera Flash - Slowed down for cinematic feel */
         .flash-expand {
-            animation: flashExplode 1.2s ease-out forwards; 
+            animation: flashExplode 2.5s ease-out forwards; 
         }
 
         @keyframes flashExplode {
             0% { clip-path: circle(0% at 50% 45%); opacity: 1; }
-            20% { clip-path: circle(150% at 50% 45%); opacity: 1; }
+            40% { clip-path: circle(150% at 50% 45%); opacity: 1; } /* Slower, 1-second expansion */
             100% { clip-path: circle(150% at 50% 45%); opacity: 0; display: none; }
         }
     </style>
@@ -499,10 +499,16 @@
 
             try {
                 toggleSyncIndicator(true);
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                
+                // ADD THIS: A random timestamp to force a brand-new connection every time
+                const cacheBusterUrl = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
+                
+                const response = await fetch(cacheBusterUrl, {
                     method: 'POST',
+                    cache: 'no-store', // ADD THIS: Forbids the browser from caching the 302 redirect
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: action, data: payload })
+                    body: JSON.stringify({ action: action, data: payload }),
+                    signal: controller.signal
                 });
 
                 if (!response.ok) throw new Error('Network response was not ok');
@@ -613,12 +619,12 @@
                     // Hide the dark splash screen halfway through the white flash explosion
                     setTimeout(() => {
                         splash.style.display = 'none';
-                    }, 150);
+                    }, 1000);
                     
                     // Clean up the white overlay
                     setTimeout(() => {
                         flash.style.display = 'none';
-                    }, 1200);
+                    }, 2600);
                 }, 400);
             }
             // ---------------------------
