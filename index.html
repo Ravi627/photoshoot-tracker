@@ -490,49 +490,53 @@
             return inputDateStr;
         }
 
-        // Setup API fetch
-        // Setup API fetch with a strict timeout
-        async function apiCall(action, payload = null) {
+       // Setup API fetch with direct connection and Auto-Retry Loop
+       async function apiCall(action, payload = null, retries = 3) {
             if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
                 return mockApi(action, payload); 
             }
 
-            // Create a strict 8-second kill switch for bad network connections
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000); 
+            for (let i = 0; i < retries; i++) {
+                try {
+                    toggleSyncIndicator(true);
+                    
+                    const response = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: action, data: payload })
+                        // Notice: NO AbortController signal here anymore!
+                    });
 
-            try {
-                toggleSyncIndicator(true);
-                
-                // A random timestamp to force a brand-new connection every time
-                const cacheBusterUrl = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
-                
-                const response = await fetch(cacheBusterUrl, {
-                    method: 'POST',
-                    cache: 'no-store', // Forbids the browser from caching the 302 redirect
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: action, data: payload }),
-                    signal: controller.signal // Attaches the kill switch
-                });
+                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                    
+                    // Catch Google HTML intercepts just in case
+                    const rawText = await response.text();
+                    if (rawText.trim().startsWith('<')) {
+                        throw new Error('Google intercepted request (HTML returned).');
+                    }
 
-                clearTimeout(timeoutId); // Network succeeded, cancel the kill switch
-
-                if (!response.ok) throw new Error('Network response was not ok');
-                const result = await response.json();
-                if(result.error) throw new Error(result.error);
-                return result;
-                
-            } catch (error) {
-                clearTimeout(timeoutId);
-                // If it was killed by our timeout, show a specific error
-                const errorMsg = error.name === 'AbortError' ? 'Connection timed out' : error.message || 'Failed to sync';
-                showToast(`Database error: ${errorMsg}`, 'error');
-                throw error;
-            } finally {
-                toggleSyncIndicator(false);
+                    const result = JSON.parse(rawText);
+                    if (result.error) throw new Error(result.error);
+                    
+                    toggleSyncIndicator(false);
+                    return result; // Success! Return data.
+                    
+                } catch (err) {
+                    console.warn(`Background Attempt ${i + 1} failed: ${err.message}`);
+                    
+                    // If this was the final attempt, stop and throw error
+                    if (i === retries - 1) {
+                        toggleSyncIndicator(false);
+                        showToast(`Database error: ${err.message || 'Failed to sync'}`, 'error');
+                        throw err;
+                    }
+                    
+                    // Silently wait 1.5 seconds and retry
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
             }
         }
-
+        
         function mockApi(action, payload) {
             return new Promise(resolve => {
                 setTimeout(() => {
