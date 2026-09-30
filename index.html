@@ -536,7 +536,7 @@
                 }
             }
         }
-        
+
         function mockApi(action, payload) {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -620,7 +620,7 @@
                         charIndex = 0;
                         typingTimer = setTimeout(typeWriter, 650); // Hold the completed phrase on screen
                     } else {
-                        typingTimer = setTimeout(typeWriter, 35); // Typing speed per character
+                        typingTimer = setTimeout(typeWriter, 50); // Typing speed per character
                     }
                 }
             }
