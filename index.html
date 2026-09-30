@@ -38,6 +38,25 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 h-full flex flex-col font-sans antialiased overscroll-none">
+    <!-- Custom Camera Splash Screen -->
+    <div id="splash-screen" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center">
+        <!-- Wireframe Camera SVG -->
+        <div class="relative w-20 h-20 mb-8">
+            <svg class="w-full h-full text-slate-100/80 stroke-current animate-pulse" viewBox="0 0 24 24" fill="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+                <path d="M20 9v.01"></path>
+            </svg>
+        </div>
+        
+        <!-- Cycling Typography -->
+        <div class="h-6 overflow-hidden relative w-64 text-center">
+            <p id="splash-text" class="text-xs font-mono tracking-[0.2em] text-slate-300 uppercase absolute inset-0 transition-opacity duration-300">Setting lights...</p>
+        </div>
+    </div>
+
+    <!-- The Flash Transition -->
+    <div id="flash-overlay" class="fixed inset-0 z-[105] bg-white opacity-0 pointer-events-none"></div>
 
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -466,7 +485,7 @@
             }
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('form-date').valueAsDate = new Date();
             
             const savedSuperPhone = localStorage.getItem('supervisorPhone');
@@ -475,14 +494,50 @@
                 if (input) input.value = savedSuperPhone;
             }
             
-            // Local studios fallback load
-            studios = JSON.parse(localStorage.getItem('muskanStudios') || '[]');
+            // --- SPLASH SCREEN LOGIC ---
+            const phrases = ["Setting lights...", "Packing dresses...", "Final touch up...", "Editing the images..."];
+            let phraseIndex = 0;
+            const splashText = document.getElementById('splash-text');
+            
+            const splashInterval = setInterval(() => {
+                splashText.style.opacity = 0;
+                setTimeout(() => {
+                    phraseIndex = (phraseIndex + 1) % phrases.length;
+                    splashText.innerText = phrases[phraseIndex];
+                    splashText.style.opacity = 1;
+                }, 300);
+            }, 800);
 
-            try {
-                const data = await apiCall('getData');
+            function triggerFlashAndReveal() {
+                clearInterval(splashInterval);
+                const flash = document.getElementById('flash-overlay');
+                const splash = document.getElementById('splash-screen');
+                
+                // 1. Sudden flash pop
+                flash.style.transition = 'opacity 0.1s ease-in';
+                flash.classList.remove('opacity-0');
+                flash.classList.add('opacity-100');
+                
+                setTimeout(() => {
+                    // 2. Hide splash screen behind the blinding white flash
+                    splash.style.display = 'none';
+                    
+                    // 3. Smooth fade out to reveal the populated website
+                    flash.style.transition = 'opacity 1s ease-out';
+                    flash.classList.remove('opacity-100');
+                    flash.classList.add('opacity-0');
+                }, 150);
+            }
+            // ---------------------------
+            
+            // Load local data as a silent fallback
+            studios = JSON.parse(localStorage.getItem('muskanStudios') || '[]');
+            
+            // Fetch live data from Google Sheets
+            apiCall('getData').then(data => {
                 if (data) {
                     entries = data.entries || [];
-                    // Safely parse history strings if coming from Apps Script stringified JSON cell
+                    
                     entries.forEach(e => {
                         e.id = String(e.id);
                         if (typeof e.history === 'string') {
@@ -492,23 +547,28 @@
                         if (!e.history) e.history = [];
                     });
 
-                    // Update studios if API has them, else rely on local
                     if (data.studios && data.studios.length > 0 && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
                         studios = data.studios;
                     }
                     
                     entries.sort((a, b) => b.id - a.id);
+                    localStorage.setItem('muskanStudios', JSON.stringify(studios));
+                    
                     renderEntries();
                     updateSummaryCards();
+                    
+                    // Trigger the transition once data is successfully mapped
+                    triggerFlashAndReveal();
                 }
-            } catch (error) {
+            }).catch(error => {
                 document.getElementById('entries-container').innerHTML = `
                     <div class="py-12 px-4 text-center text-rose-500">
                         <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
-                        <p class="text-sm font-semibold">Failed to connect to Database</p>
-                        <p class="text-xs text-slate-500 mt-2">Running locally</p>
+                        <p class="text-sm font-semibold">Offline Mode</p>
+                        <p class="text-xs text-slate-500 mt-2">Check internet connection</p>
                     </div>`;
-            }
+                triggerFlashAndReveal();
+            });
         });
 
         function generateNextInvoiceNo() {
