@@ -37,20 +37,35 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
     <style>
+        /* Hide scrollbar for cleaner mobile look while keeping functionality */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
         /* Camera Wireframe Drawing Animation */
         .draw-camera * {
-            stroke-dasharray: 250;
-            stroke-dashoffset: 250;
-            animation: sketch 1.5s ease-out forwards;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: sketch 2.5s ease-in-out forwards;
         }
 
-        /* Slight delay for the inner lens and flash details to draw second */
-        .draw-camera .delay-draw {
-            animation-delay: 0.3s;
-        }
+        /* Sequential drawing delays */
+        .draw-camera .delay-1 { animation-delay: 0.6s; }
+        .draw-camera .delay-2 { animation-delay: 1.2s; }
 
         @keyframes sketch {
             to { stroke-dashoffset: 0; }
+        }
+
+        /* Expanding Camera Flash */
+        .flash-expand {
+            /* Originates from the top center of the camera (where the flash bulb is) */
+            animation: flashExplode 1.2s ease-out forwards; 
+        }
+
+        @keyframes flashExplode {
+            0% { clip-path: circle(0% at 50% 45%); opacity: 1; }
+            20% { clip-path: circle(150% at 50% 45%); opacity: 1; }
+            100% { clip-path: circle(150% at 50% 45%); opacity: 0; display: none; }
         }
     </style>
 </head>
@@ -61,23 +76,19 @@
         <!-- Live-Drawing DSLR Wireframe -->
         <div class="relative w-24 h-24 mb-8">
             <svg class="w-full h-full text-slate-100 stroke-current draw-camera" viewBox="0 0 100 100" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <!-- Camera Body -->
-                <rect x="15" y="38" width="70" height="45" rx="6" />
-                <!-- Shutter Button -->
-                <path d="M 22 38 L 22 31 L 32 31 L 32 38" />
-                <!-- Mode Dial -->
-                <path d="M 70 38 L 70 33 L 78 33 L 78 38" />
-                <!-- Pop-up Flash Housing -->
-                <path d="M 38 38 L 42 20 L 58 20 L 62 38" />
+                <!-- Camera Body & Main Dials -->
+                <rect pathLength="100" x="15" y="38" width="70" height="45" rx="6" />
+                <path pathLength="100" d="M 22 38 L 22 31 L 32 31 L 32 38" />
+                <path pathLength="100" d="M 70 38 L 70 33 L 78 33 L 78 38" />
                 
-                <!-- Inner details (draw slightly later) -->
-                <g class="delay-draw">
-                    <!-- Flash Bulb -->
-                    <rect x="45" y="25" width="10" height="5" rx="1" />
-                    <!-- Lens Outer Barrel -->
-                    <circle cx="50" cy="60" r="18" />
-                    <!-- Lens Inner Glass -->
-                    <circle cx="50" cy="60" r="10" />
+                <!-- Pop-up Flash Housing -->
+                <path class="delay-1" pathLength="100" d="M 38 38 L 42 20 L 58 20 L 62 38" />
+                
+                <!-- Inner details (Lens and Flash Bulb draw last) -->
+                <g class="delay-2">
+                    <rect pathLength="100" x="45" y="25" width="10" height="5" rx="1" />
+                    <circle pathLength="100" cx="50" cy="60" r="18" />
+                    <circle pathLength="100" cx="50" cy="60" r="10" />
                 </g>
             </svg>
         </div>
@@ -89,8 +100,7 @@
     </div>
 
     <!-- The Flash Transition -->
-    <div id="flash-overlay" class="fixed inset-0 z-[105] bg-white opacity-0 pointer-events-none"></div>
-
+    <div id="flash-overlay" class="fixed inset-0 z-[105] bg-white pointer-events-none opacity-0"></div>
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -528,7 +538,8 @@
             }
             
             // --- SPLASH SCREEN LOGIC ---
-            const phraseSets = [
+           // --- SPLASH SCREEN LOGIC ---
+           const phraseSets = [
                 ["Unfolding the organza...", "Draping the dupattas...", "Focusing the lens...", "Syncing the catalog..."],
                 ["Steaming the fabrics...", "Detailing the handwork...", "Positioning the softboxes...", "Updating the dispatch log..."],
                 ["Prepping the 3-piece sets...", "Pinning the silhouettes...", "Metering the light...", "Connecting the catalog..."],
@@ -536,12 +547,10 @@
                 ["Styling the catalog...", "Ironing the pleats...", "Charging the flash...", "Counting the inventory..."]
             ];
             
-            // Pick a random set of 4 phrases every time the app opens
             const activePhrases = phraseSets[Math.floor(Math.random() * phraseSets.length)];
             let phraseIndex = 0;
             const splashText = document.getElementById('splash-text');
             
-            // Set the first phrase immediately
             splashText.innerText = activePhrases[0];
             
             const splashInterval = setInterval(() => {
@@ -551,35 +560,31 @@
                     splashText.innerText = activePhrases[phraseIndex];
                     splashText.style.opacity = 1;
                 }, 300);
-            }, 800);
+            }, 850);
 
             function triggerFlashAndReveal() {
                 clearInterval(splashInterval);
                 const flash = document.getElementById('flash-overlay');
                 const splash = document.getElementById('splash-screen');
                 
-                // 1. Sudden flash pop
-                flash.style.transition = 'opacity 0.1s ease-in';
-                flash.classList.remove('opacity-0');
-                flash.classList.add('opacity-100');
+                // Add the expanding CSS animation to the flash overlay
+                flash.classList.add('flash-expand');
                 
+                // Hide the dark splash screen halfway through the white flash explosion
                 setTimeout(() => {
-                    // 2. Hide splash screen behind the blinding white flash
                     splash.style.display = 'none';
-                    
-                    // 3. Smooth fade out to reveal the populated website
-                    flash.style.transition = 'opacity 1s ease-out';
-                    flash.classList.remove('opacity-100');
-                    flash.classList.add('opacity-0');
                 }, 150);
             }
             // ---------------------------
             
-            // Load local data as a silent fallback
             studios = JSON.parse(localStorage.getItem('muskanStudios') || '[]');
             
-            // Fetch live data from Google Sheets
-            apiCall('getData').then(data => {
+            // Wait for BOTH the database to load AND the animation to finish (at least 3.5 seconds)
+            const minimumSplashTime = new Promise(resolve => setTimeout(resolve, 3500));
+            const dataFetch = apiCall('getData');
+
+            Promise.all([dataFetch, minimumSplashTime]).then(results => {
+                const data = results[0]; // The database payload
                 if (data) {
                     entries = data.entries || [];
                     
@@ -602,7 +607,7 @@
                     renderEntries();
                     updateSummaryCards();
                     
-                    // Trigger the transition once data is successfully mapped
+                    // BOOM! Trigger the flash
                     triggerFlashAndReveal();
                 }
             }).catch(error => {
@@ -614,7 +619,6 @@
                     </div>`;
                 triggerFlashAndReveal();
             });
-        });
 
         function generateNextInvoiceNo() {
             const year = new Date().getFullYear();
