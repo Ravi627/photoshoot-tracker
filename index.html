@@ -484,6 +484,7 @@
                     entries = data.entries || [];
                     // Safely parse history strings if coming from Apps Script stringified JSON cell
                     entries.forEach(e => {
+                        e.id = String(e.id);
                         if (typeof e.history === 'string') {
                             try { e.history = JSON.parse(e.history); } 
                             catch(err) { e.history = []; }
