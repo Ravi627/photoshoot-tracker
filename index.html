@@ -465,8 +465,7 @@
     </div>
 
     <!-- Toast Container -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none pb-4 pr-2 sm:pb-0 sm:pr-0"></div>
-
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[150] flex flex-col space-y-2 pointer-events-none pb-4 pr-2 sm:pb-0 sm:pr-0"></div>
     <script>
         // Placeholder for Google Apps Script Web App URL
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDifm8Apfmdb2GAIrLz7ggj5TKLyfKkME7I-cmX_4nrmgeA0mBCgVbzzhJgOyOhBoI/exec';
@@ -581,7 +580,6 @@
                 if (input) input.value = savedSuperPhone;
             }
             
-            // --- SPLASH SCREEN LOGIC ---
            // --- SPLASH SCREEN LOGIC ---
            const phraseSets = [
                 ["Unfolding the organza...", "Draping the dupattas...", "Focusing the lens...", "Syncing the catalog..."],
@@ -592,53 +590,72 @@
             ];
             
             const activePhrases = phraseSets[Math.floor(Math.random() * phraseSets.length)];
-            let phraseIndex = 0;
             const splashText = document.getElementById('splash-text');
+            splashText.style.opacity = 1; // Keep container permanently visible
             
-            splashText.innerText = activePhrases[0];
-            
-            const splashInterval = setInterval(() => {
-                splashText.style.opacity = 0;
-                setTimeout(() => {
+            let phraseIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+            let typingTimer;
+
+            // The Typewriter Engine
+            function typeWriter() {
+                const currentPhrase = activePhrases[phraseIndex];
+                
+                if (isDeleting) {
+                    splashText.innerText = ''; // Instantly clear text for a technical terminal vibe
+                    isDeleting = false;
                     phraseIndex = (phraseIndex + 1) % activePhrases.length;
-                    splashText.innerText = activePhrases[phraseIndex];
-                    splashText.style.opacity = 1;
-                }, 300);
-            }, 850);
+                    typingTimer = setTimeout(typeWriter, 150); // Short pause before next phrase
+                } else {
+                    splashText.innerText = currentPhrase.substring(0, charIndex + 1);
+                    charIndex++;
+                    
+                    if (charIndex === currentPhrase.length) {
+                        isDeleting = true;
+                        charIndex = 0;
+                        typingTimer = setTimeout(typeWriter, 650); // Hold the completed phrase on screen
+                    } else {
+                        typingTimer = setTimeout(typeWriter, 35); // Typing speed per character
+                    }
+                }
+            }
+            
+            typeWriter(); // Start the typing effect
 
             function triggerFlashAndReveal() {
-                clearInterval(splashInterval);
+                clearTimeout(typingTimer); // Stop the typewriter instantly
                 const flash = document.getElementById('flash-overlay');
                 const splash = document.getElementById('splash-screen');
                 const shutterBtn = document.getElementById('shutter-btn');
                 
-                // 1. Physically press the shutter button down via CSS
+                // 1. Press the button down
                 shutterBtn.classList.add('press-shutter');
                 
-                // 2. Play high-quality camera shutter sound (using Google's open sound library)
+                // 2. Play the click sound immediately
                 const shutterSound = new Audio('https://actions.google.com/sounds/v1/foley/camera_shutter_click.ogg');
-                shutterSound.volume = 0.6; // Not too loud
+                shutterSound.volume = 0.6;
+                shutterSound.play().catch(e => console.log("Audio blocked until interaction."));
                 
-                // 3. Handle browser autoplay blocks
-                shutterSound.play().catch(e => console.log("Audio temporarily blocked by browser until user interacts."));
-                
-                // 4. Wait a tiny 150ms for the button to physically hit the bottom, then FLASH
+                // 3. Wait a deliberate 400ms for the user to SEE the button is pressed
                 setTimeout(() => {
+                    // 4. Blast the flash
                     flash.classList.remove('hidden');
                     flash.classList.add('flash-expand');
                     
-                    // Hide the dark splash screen halfway through the white flash explosion
+                    // Hide the dark splash screen AFTER the white flash fully covers the screen
                     setTimeout(() => {
                         splash.style.display = 'none';
-                    }, 1000);
+                    }, 1000); 
                     
-                    // Clean up the white overlay
+                    // Clean up the white overlay after animation finishes
                     setTimeout(() => {
                         flash.style.display = 'none';
-                    }, 2600);
-                }, 400);
+                    }, 2600); 
+                    
+                }, 400); 
             }
-            // ---------------------------
+            // ---------------------------// ---------------------------
             
             studios = JSON.parse(localStorage.getItem('muskanStudios') || '[]');
             
@@ -678,6 +695,8 @@
                     updateSummaryCards();
                 } else {
                     // Failed to load! Show offline state
+                    // ADD THIS LINE TO STOP SWALLOWING THE ERROR
+                console.error("CRITICAL APP ERROR:", error);
                     document.getElementById('entries-container').innerHTML = `
                         <div class="py-12 px-4 text-center text-rose-500">
                             <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
