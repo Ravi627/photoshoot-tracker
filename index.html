@@ -499,7 +499,7 @@
 
             // Create a strict 8-second kill switch for bad network connections
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); 
+            const timeoutId = setTimeout(() => controller.abort(), 15000); 
 
             try {
                 toggleSyncIndicator(true);
